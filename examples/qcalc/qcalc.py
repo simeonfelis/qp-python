@@ -60,6 +60,7 @@ import gtk.glade
 
 # Local - Expects us to be two levels below the library
 sys.path.insert(0, os.path.join('..', '..'))
+sys.path.insert(0, os.path.join('..', '..', 'qp'))
 import qp
 import qptest
 
@@ -74,7 +75,7 @@ import qptest
     EQUALS_SIG,
     TERMINATE_SIG,
     IGNORE_SIG
-] = range(qp.USER_SIG, qp.USER_SIG + 9)
+] = list(range(qp.USER_SIG, qp.USER_SIG + 9))
 
 KEY_UNKNOWN = '?'
 KEY_PLUS = '+'
@@ -121,7 +122,7 @@ class QCalcGui(object):
             'button_mult': (OPER_SIG, KEY_MULT),
             'button_equals': (EQUALS_SIG, None),
         }
-        for name, (sig, key) in signals.iteritems():
+        for name, (sig, key) in signals.items():
             widget = self.widgets.get_widget(name)
             widget.connect('clicked', self.button_clicked, sig, key)
         top = self.widgets.get_widget('top')

@@ -48,14 +48,14 @@ class QpTester(object):
             for call in qp.QF.publish.call_args_list:
                 e = call[0][0]
                 try:
-                    print "%s(%s)" % (qif.name(e.sig),
-                            qif.name(e.sig, e.par))
+                    print("%s(%s)" % (qif.name(e.sig),
+                            qif.name(e.sig, e.par)))
                 except:
-                    print "%s" % qif.name(e.sig)
+                    print("%s" % qif.name(e.sig))
             try:
-                print "Expected: %s(%s)" % (qif.name(sig), qif.name(sig, par))
+                print("Expected: %s(%s)" % (qif.name(sig), qif.name(sig, par)))
             except:
-                print "Expected: %s" % qif.name(sig)
+                print("Expected: %s" % qif.name(sig))
         assert found, 'Event not published'
 
     def assertPublishedJson(self, method, params):
@@ -101,7 +101,7 @@ class QpTester(object):
         return x.sig == y.sig and x.par == y.par
 
     def assertDictContainsSubset(self, expected, result):
-        for k, v in expected.iteritems():
+        for k, v in expected.items():
             self.assertEqual(result[k], v)
 
 
