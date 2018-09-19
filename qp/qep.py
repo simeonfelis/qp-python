@@ -41,8 +41,11 @@
 #   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 #   OF THE POSSIBILITY OF SUCH DAMAGE.
 # -----------------------------------------------------------------------------
+from __future__ import with_statement 
 
 """Python port of the Quantum Event Processor"""
+import threading
+
 
 # Internal QEP constants
 _QEP_EMPTY_SIG = 0
@@ -126,6 +129,7 @@ class Hsm(Fsm):
     """Hsm represents an hierarchical finite state machine (HSM)"""
 
     def __init__(self, initial):
+        self.lock = threading.Lock()
         Fsm.__init__(self, initial)
 
     def top(self, e=None):
@@ -161,32 +165,33 @@ class Hsm(Fsm):
 
     def dispatch(self, e):
         """Executes state handlers for dispatched signals"""
-        t = self._state
-        path = [None] * QEP_MAX_NEST_DEPTH
-        path[2] = t
-        while (t != 0):    # Process the event hierarchically
-            s = t
-            t = s(self, e)    # Invoke signal handler
-
-        if (self.tran_ != Q_TRAN_NONE_TYPE):            # transition taken?
-            path[0] = self._state    # save the transition target
-            self._state = path[2]          # restore current state
-            path[1] = s                    # save the transition source
-
-            s = path[2]
-            # Exit current state to the transition source path[1]
-            while s != path[1]:
-                t = self.QEP_TRIG_(s, EXIT_SIG)
-                if t != 0:
-                    s = t
-                else:
-                    # Find out the superstate
-                    s = self.QEP_TRIG_(s, _QEP_EMPTY_SIG)
-
-            # dynamic transition
-            s = path[2]    # save the transition source
-            path = self.exec_tran(path)
-            self.tran_ = Q_TRAN_NONE_TYPE   # clear the attribute for next use
+        with self.lock:
+            t = self._state
+            path = [None] * QEP_MAX_NEST_DEPTH
+            path[2] = t
+            while (t != 0):    # Process the event hierarchically
+                s = t
+                t = s(self, e)    # Invoke signal handler
+    
+            if (self.tran_ != Q_TRAN_NONE_TYPE):            # transition taken?
+                path[0] = self._state    # save the transition target
+                self._state = path[2]          # restore current state
+                path[1] = s                    # save the transition source
+    
+                s = path[2]
+                # Exit current state to the transition source path[1]
+                while s != path[1]:
+                    t = self.QEP_TRIG_(s, EXIT_SIG)
+                    if t != 0:
+                        s = t
+                    else:
+                        # Find out the superstate
+                        s = self.QEP_TRIG_(s, _QEP_EMPTY_SIG)
+    
+                # dynamic transition
+                s = path[2]    # save the transition source
+                path = self.exec_tran(path)
+                self.tran_ = Q_TRAN_NONE_TYPE   # clear the attribute for next use
 
     def is_in(self, state):
         """Tests if a given state is part of the current active state
